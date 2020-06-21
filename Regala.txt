@@ -1,0 +1,28 @@
+Regala-li aquest arxiu a qualsevol persona que creguis que 
+li aniria be tenir el programa Tra S.O. 1.1 per poder decidir
+quin (o quins) Sistema(es) Operati(s) posar al seu ordinador
+i on descarregar-lo(s).
+
+El programa no requereix ser un expert informàtic per poder-lo
+utilitzar, ja que si no sap quines caràcterístiques te el seu
+ordinador, si no es massa antic, podrà executar aquest programa
+i deixar que el propi programa les esbrini.
+
+A mes, el programa no recomana un sistema operatiu que sigui
+instal·lable a un ordinador amb un maquinari concret, com fa 
+Microsoft: recomana el sistema operatiu que donarà el millor 
+rendiment a cada ordinador, amb el maquinari que tingui i,
+especifica els anys de creació d'aquest sistema operatiu i en
+el cas dels sistemes operatius PRIVATIUS (Microsoft Windows)
+també indica el any de la última actualització (Service Pack o
+Release) per ajudar a que les persones que vulguin tenir un
+programari ven modern al seu ordinador vegin que tenen altres
+opcions a mes d'haver d'invertir sovint canviar de PC o en 
+afegir-li memoria ram, disc dur SSD, targeta gràfica millor, 
+... etc.
+
+
+Instal·lador de Tria S.O. 1.2 :
+
+https://mega.nz/file/LWgTHahB#QCu1QrRLoAdSuVLtKFuWRildejqDnnpqIkT_Ee2AoeI
+

@@ -1,0 +1,785 @@
+' Visual Basic Express 2017
+
+' Tria S.O. versió 1.2
+' Idea, disseny i programació (c) by Joan Baptista "Johnny B. Goode R'n'R"
+' Fet del 8 al 21 de Juny del any 2020, durant la fase 3 (4a i final) del confinament per COVID19
+
+Public Class Form1
+    ' Creació de variables numèriques, al obrir el programa, per fer els càlculs de puntuació de PC
+
+    Public nPuntuacio_Total, nCPU, nRAM, nGPU, nHDD, nPC_RAM, nPC_GPU, nPC_HDD As Integer
+    Public nPC_CPU, nTemp As Decimal
+    Public c_CPU_Name, c_String, c_GPU, c_Linux, c_Win, c_env As String
+    Public bSSD As Boolean
+
+    Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+
+        TB_CPU_Name.Text = My.Computer.Registry.GetValue("HKEY_LOCAL_MACHINE\HARDWARE\DESCRIPTION\System\CentralProcessor\0", "ProcessorNameString", Nothing)
+        nPC_CPU = My.Computer.Registry.GetValue("HKEY_LOCAL_MACHINE\HARDWARE\DESCRIPTION\System\CentralProcessor\0", "~MHz", Nothing)
+        TB_PC_CPU.Text = Str(nPC_CPU)
+        nPC_RAM = (My.Computer.Info.TotalPhysicalMemory / 1024) / 1024
+        TB_PC_RAM.Text = Str(nPC_RAM)
+        Process.Start("dxdiag", "/t DxDiag-info.txt").WaitForExit()
+        RTB_dxdiag.Text = My.Computer.FileSystem.ReadAllText(My.Application.Info.DirectoryPath & "\DxDiag-info.txt")
+        c_String = "Dedicated Memory: "
+        nTemp = Val(InStr(1, RTB_dxdiag.Text, c_String, CompareMethod.Text))
+        TB_PC_GPU.Text = RTB_dxdiag.Text.Substring(nTemp + 16, 5)
+        c_String = "Card name:"
+        nTemp = Val(InStr(1, RTB_dxdiag.Text, c_String, CompareMethod.Text))
+        If Val(InStr(nTemp, UCase(RTB_dxdiag.Text), " NVIDIA", CompareMethod.Text)) > 0 Then
+            c_GPU = "NVIDIA"
+        ElseIf Val(InStr(nTemp, UCase(RTB_dxdiag.Text), " AMD", CompareMethod.Text)) > 0 Then
+            c_GPU = "AMD"
+        ElseIf Val(InStr(nTemp, UCase(RTB_dxdiag.Text), " INTEL", CompareMethod.Text)) > 0 Then
+            c_GPU = "INTEL"
+        Else
+            c_GPU = "OTHERS"
+        End If
+        Dim c_PC_HDD = My.Computer.FileSystem.GetDriveInfo("C:\")
+        nPC_HDD = (((c_PC_HDD.TotalSize / 1024) / 1024) / 1024)
+        TB_PC_HDD.Text = Str(nPC_HDD)
+
+        Shell("PowerShell Get-PhysicalDisk > HDD.txt")
+
+        Threading.Thread.Sleep(8000)
+
+        RTB_dxdiag.Text = My.Computer.FileSystem.ReadAllText(My.Application.Info.DirectoryPath & "\HDD.txt")
+
+        MessageBox.Show("Recopila info del sistema: 8 segundos. Collect system info: 8 seconds", "Tria Sistema Operatiu 1.2", MessageBoxButtons.OK)
+
+        c_String = " SSD "
+        nTemp = Val(InStr(1, RTB_dxdiag.Text, c_String, CompareMethod.Text))
+        If nTemp > 0 Then
+            bSSD = True
+        Else
+            bSSD = False
+        End If
+    End Sub
+
+    Private Sub RB_Lang_CAT_CheckedChanged(sender As Object, e As EventArgs) Handles RB_Lang_CAT.CheckedChanged
+        If RB_Lang_CAT.Checked = True Then
+            GroupBox1.Text = "Idioma del programa"
+            GroupBox2.Text = "Valors d'aquest ordinador"
+            Lbl_Paquets.Text = "Gestor de paquets (programes) preferit a GNU/Linux"
+            RB_Linux_Others.Text = "Altres tipus de paquets"
+            Label1.Text = "Tria Sistema Operatiu - versió 1.2 (c) 2020 by Joan Baptista ALIES Johnny B. R'n'R"
+            Label2.Text = "Aquesta aplicació t'ajudarà a triar els millors Sistemes Operatius per a cada ordinador, indicant només les característiques bàsiques del PC"
+            Label13.Text = "Tria SO està pensat per poder ajudar al màxim de gent possible, incloent qui només te un ordinador de mes de 25 anys d'antiguitat"
+            Button1.Text = "&Calcular Resultat"
+            Bt_PC.Text = "Carregar valors d'aquest &PC"
+            Bt_reset.Text = "Tornar a valors per &defecte"
+            Bt_Credits.Text = "Crèdit&s"
+
+            TabPage1.Text = "General"
+            TabPage2.Text = "Processador (CPU)"
+            TabPage3.Text = "Memòria (RAM)"
+            TabPage4.Text = "Targeta gràfica (GPU)"
+            TabPage5.Text = "Disc Dur"
+
+            ChB_Laptop.Text = "Ordinador portàtil"
+            ChB_NO_internet.Text = "Ordinador NO connectat a internet"
+            ChB_Wifi.Text = "Ordinador connectat a internet, via Wi-Fi"
+            ChB_OnlyWin.Text = "Sistemes Operatius Microsoft Windows"
+            ChB_OnlyFREE_OS.Text = "Sistemes Operatius GNU/Linux"
+
+            ChB_CPU_x64.Text = "Processador de 64 bits"
+            ChB_CPU_Multi_Core.Text = "Processador amb 2 o MES nuclis"
+            ChB_Mhz.Text = "Velocitat CPU en Mhz enlloc de Ghz (ordinadors antics)"
+
+            ChB_RAM_MB.Text = "Quantitat de memòria en MB enlloc de GB (per ordinadors antics)"
+            Lbl_RAM.Text = "Quantitat MÍNIMA de memòria RAM del ordinador"
+
+            ChB_Embeded_GPU.Text = "Targeta gràfica integrada (memòria compartida)"
+            Lbl_GPU.Text = "Marca de la GPU (targeta gràfica)"
+            Lbl_GPU_RAM.Text = "MB mínim de Memòria GPU (targeta gràfica)"
+            RB_other_GPUs.Text = "Altres marques de GPU"
+
+            ChB_SSD.Text = "Disc dur SSD o M.2"
+            Lbl_HDD.Text = "MÍNIM de GB disponibles al disc dur principal"
+            Lbl_HDD_GB_info.Text = "IMPORTANT! Aquí hem d'indicar la quantitat MÍNIMA de GB que li podrem assignar a CADA UN dels sistemes operatius que voldrem posar al disc dur principal (el mes ràpid) del nostre ordinador"
+
+            Label12.Text = "FET ! Per instal·lar arranc dual Windows 10 + Linux cal un MÍNIM de 80 GB lliures al disc, assignant primer MÍNIM 60 GB per Windows i finalment, MÍNIM 20 GB per Linux"
+        End If
+    End Sub
+
+    Private Sub RB_Lang_ESP_CheckedChanged(sender As Object, e As EventArgs) Handles RB_Lang_ESP.CheckedChanged
+        If RB_Lang_ESP.Checked = True Then
+            GroupBox1.Text = "Idioma del programa"
+            GroupBox2.Text = "Valores de este ordenador"
+            Lbl_Paquets.Text = "Gestor de paquetes (programas) preferido en GNU/Linux"
+            RB_Linux_Others.Text = "Otros tipos de paquetes"
+            Label1.Text = "Tria Sistema Operatiu - versión 1.2 (c) 2020 by Joan Baptista ALIAS Johnny B. R'n'R"
+            Label2.Text = "Esta aplicación te ayudará a escoger los mejores Sistemas Operativos para cada ordenador, indicando solo las características básicas del PC"
+            Label13.Text = "Tria SO está pensado para poder ayudar al máximo de persones posibles, incluyendo a quien solo tiene un PC de más de 25 años de antigüedad"
+            Button1.Text = "&Calcular Resultado"
+            Bt_PC.Text = "Cargar valores de este &PC"
+            Bt_reset.Text = "Volver a valores por &defecto"
+            Bt_Credits.Text = "Crédito&s"
+
+            TabPage1.Text = "General"
+            TabPage2.Text = "Procesador (CPU)"
+            TabPage3.Text = "Memoria (RAM)"
+            TabPage4.Text = "Targeta gráfica (GPU)"
+            TabPage5.Text = "Disco Duro"
+
+            ChB_Laptop.Text = "Ordenador portátil"
+            ChB_NO_internet.Text = "Ordenador NO conectado a internet"
+            ChB_Wifi.Text = "Ordenador conectado a internet, vía Wi-Fi"
+            ChB_OnlyWin.Text = "Sistemas Operativos Microsoft Windows"
+            ChB_OnlyFREE_OS.Text = "Sistemas Operativos GNU/Linux"
+
+            ChB_CPU_x64.Text = "Procesador de 64 bits"
+            ChB_CPU_Multi_Core.Text = "Procesador con 2 o MAS nucleos"
+            ChB_Mhz.Text = "Velocidad CPU en Mhz en vez de Ghz (ordenadores antiguos)"
+
+            ChB_RAM_MB.Text = "Cantidad de memoria en MB en vez de GB (para ordenadores antiguos)"
+            Lbl_RAM.Text = "Cantidad MÍNIMA de memoria RAM del ordenador"
+
+            ChB_Embeded_GPU.Text = "Targeta gráfica integrada (memoria compartida)"
+            Lbl_GPU.Text = "Marca de la GPU (targeta gráfica)"
+            Lbl_GPU_RAM.Text = "MB mínimo de Memoria GPU (targeta gráfica)"
+            RB_other_GPUs.Text = "Otras marcas de GPU"
+
+            ChB_SSD.Text = "Disco duro SSD o M.2"
+            Lbl_HDD.Text = "MÍNIMO de GB disponibles en el disco duro principal"
+            Lbl_HDD_GB_info.Text = "IMPORTANTE! Aquí hay que indicar la cantidad MÍNIMA de GB que le podremos asignar a CADA UNO de los sistemas operativos que vamos a poner en el disco duro principal (el más rápido) de nuestro ordenador"
+
+            Label12.Text = "LISTO ! Para instalar arranque dual Windows 10 + Linux requerirá un MÍNIMO de 80 GB libres en el disco, asignando primero MÍNIMO 60 GB para Windows y finalmente, MÍNIMO 20 GB para Linux"
+        End If
+    End Sub
+
+    Private Sub RB_Lang_ENG_CheckedChanged(sender As Object, e As EventArgs) Handles RB_Lang_ENG.CheckedChanged
+        If RB_Lang_ENG.Checked = True Then
+            GroupBox1.Text = "Program language"
+            GroupBox2.Text = "Values of this computer"
+            Lbl_Paquets.Text = "Prefered (programs) Package Manager in GNU/Linux"
+            RB_Linux_Others.Text = "Other types of packages"
+            Label1.Text = "Tria Operative System - version 1.2 (c) 2020 by Joan Baptista A.K.A. Johnny B. R'n'R"
+            Label2.Text = "This App will help you to choose the best Operative System(s) for any computer, selecting the main specifications of any PC"
+            Label13.Text = "Tria OS is designed to help as many people as possible, including those who only have a computer over 25 years old"
+            Button1.Text = "&Calculate Result"
+            Bt_PC.Text = "Load values from this &PC"
+            Bt_reset.Text = "Back to &default values"
+            Bt_Credits.Text = "Credit&s"
+
+            TabPage1.Text = "General"
+            TabPage2.Text = "Processor (CPU)"
+            TabPage3.Text = "RAM (Memory)"
+            TabPage4.Text = "Graphics Card (GPU)"
+            TabPage5.Text = "Hard Disk"
+
+            ChB_Laptop.Text = "Laptop"
+            ChB_NO_internet.Text = "Computer WITHOUT internet connection"
+            ChB_Wifi.Text = "Computer connected to internet, via Wi-Fi"
+            ChB_OnlyWin.Text = "Microsoft Windows Operative Systems"
+            ChB_OnlyFREE_OS.Text = "GNU/Linux Operative Systems"
+
+            ChB_CPU_x64.Text = "64 bits Processor"
+            ChB_CPU_Multi_Core.Text = "Processor with 2 or MORE cores"
+            ChB_Mhz.Text = "CPU speed in Mhz instead of Ghz (older computers)"
+
+            ChB_RAM_MB.Text = "Total amount of memory in MB instead of GB (for older computers)"
+            Lbl_RAM.Text = "Total amount of RAM (memory) in the PC"
+
+
+            ChB_Embeded_GPU.Text = "Integrated grafics card (shared memory)"
+            Lbl_GPU.Text = "Graphics Card (GPU) brand"
+            Lbl_GPU_RAM.Text = "Minimum amount of GPU (graphics card) memory"
+            RB_other_GPUs.Text = "Other GPU brands"
+
+            ChB_SSD.Text = "SSD or M.2 Hard Disk Drive"
+            Lbl_HDD.Text = "MINIMUM amount of available GB in the main hard disk drive"
+            Lbl_HDD_GB_info.Text = "IMPORTANT! Here we must enter the MINIMUN amount of GB available to assign on EACH Operating System we want to install in the main hard disk drive (the fastest one) of the computer"
+
+            Label12.Text = "DONE ! To install dual boot Windows 10 + Linux cal a MINIMUM of free 80 GB disc space, assigning first MINIMUM 60 GB for Windows and finally, MINIMUM 20 GB for Linux"
+        End If
+    End Sub
+
+    Private Sub RB_Lang_FRA_CheckedChanged(sender As Object, e As EventArgs) Handles RB_Lang_FRA.CheckedChanged
+        If RB_Lang_FRA.Checked = True Then
+            GroupBox1.Text = "Langue du programme"
+            GroupBox2.Text = "Valeurs de cet ordinateur"
+            Lbl_Paquets.Text = "Gestionnaire de packages préféré (GNU / Linux)"
+            RB_Linux_Others.Text = "Autres types de packages"
+            Label1.Text = "Tria Systèmes Opératoire - version 1.2 (c) 2020 par Joan Baptista AKA Johnny B. R'n'R"
+            Label2.Text = "Cette app vous aidera à choisir les meilleurs systèmes d'exploitation pour chaque PC, en indiquant uniquement les caractéristiques de base du PC"
+            Label13.Text = "TriaSO est conçu pour aider le plus de gens possible, y compris ceux qui n'ont qu'un ordinateur de plus de 25 ans"
+            Button1.Text = "&Calculer le résultat"
+            Bt_PC.Text = "Charger des valeurs depuis ce &PC"
+            Bt_reset.Text = "Retour aux valeurs par &défaut"
+            Bt_Credits.Text = "Crédit&s"
+
+            TabPage1.Text = "Général"
+            TabPage2.Text = "Processeur (CPU)"
+            TabPage3.Text = "Mémoire (RAM)"
+            TabPage4.Text = "Carte graphique (GPU)"
+            TabPage5.Text = "Disque Dur"
+
+            ChB_Laptop.Text = "Ordinateur portable"
+            ChB_NO_internet.Text = "Ordinateur NON connecté à internet"
+            ChB_Wifi.Text = "Ordinateur connecté à internet, via Wi-Fi"
+            ChB_OnlyWin.Text = "Systèmes d'exploitation Microsoft Windows"
+            ChB_OnlyFREE_OS.Text = "Systèmes d'exploitation GNU/Linux"
+
+            ChB_CPU_x64.Text = "Processeur de 64 bits"
+            ChB_CPU_Multi_Core.Text = "Processeur avec 2 cœurs ou PLUS"
+            ChB_Mhz.Text = "Vitesse du processeur en Mhz au lieu de Ghz (anciens ordinateurs)"
+
+            ChB_RAM_MB.Text = "Quantité de mémoire en MB au lieu de GB (pour les vieux ordinateurs)"
+            Lbl_RAM.Text = "Quantité de RAM disponible sur votre ordinateur"
+
+            ChB_Embeded_GPU.Text = "Carte graphique intégrée (la memoire partagée)"
+            Lbl_GPU.Text = "Marque de GPU (carte graphique)"
+            Lbl_GPU_RAM.Text = "MB minimum de mémoire GPU (carte graphique)"
+            RB_other_GPUs.Text = "Autres marques de GPU"
+
+            ChB_SSD.Text = "Disque Dur SSD ou M.2"
+            Lbl_HDD.Text = "MINIMUM GB disponible sur le disque dur principal"
+            Lbl_HDD_GB_info.Text = "IMPORTANT! Ici, nous devons indiquer la quantité MINIMUM de Go que nous pouvons affecter à CHAQUE UN des systèmes d'exploitation que nous allons mettre sur le disque dur principal (le plus rapide) de notre ordinateur"
+
+            Label12.Text = "PRÊT ! Pour installer le double démarrage, Windows 10 + Linux nécessite un MINIMUM de 80 GB d'espace libre sur le disque, affectant au minimum 60 GB pour Windows et enfin MINIMUM 20 GB pour Linux"
+        End If
+    End Sub
+
+    Private Sub ChB_NO_internet_CheckedChanged(sender As Object, e As EventArgs) Handles ChB_NO_internet.CheckedChanged
+        If ChB_NO_internet.Checked = True Then
+            ChB_Wifi.Checked = False
+            ChB_Wifi.Enabled = False
+        Else
+            ChB_Wifi.Enabled = True
+        End If
+    End Sub
+
+    Private Sub Bt_Credits_Click(sender As Object, e As EventArgs) Handles Bt_Credits.Click
+        If RB_Lang_CAT.Checked = True Then
+            MessageBox.Show("Gracies a la meva parella (Enriqueta) i als altres 3 membres del grup <mkdir / 2020> (Josep Maria, Bertus i Pep) per ajudar-me a millorar aquest programa, detectant errors, oferint solucions i proposant millores.", "Tria Sistema Operatiu 1.2 - 21 de juny del 2020", MessageBoxButtons.OK)
+        ElseIf RB_Lang_ESP.Checked = True Then
+            MessageBox.Show("Gracias a mi pareja (Enriqueta) y a los otros 3 miembros del grupo <mkdir / 2020> (Josep Maria, Bertus y Pep) por ayudarme a mejorar este programa, detectando errores, ofreciendo soluciones y proponiendo  mejoras.", "Tria Sistema Operatiu 1.2 - 21 de junio del 2020", MessageBoxButtons.OK)
+        ElseIf RB_Lang_ENG.Checked = True Then
+            MessageBox.Show("Thanks to my partner (Enriqueta) and the other 3 members of the <mkdir / 2020> group (Josep Maria, Bertus and Pep) for helping me to improve this program, detecting errors, offering solutions and proposing improvements. ", "Tria Sistema Operatiu 1.2 - June 21, 2020", MessageBoxButtons.OK)
+        Else
+            MessageBox.Show("Merci à mon partenaire (Enriqueta) et aux 3 autres membres du groupe <mkdir / 2020> (Josep Maria, Bertus et Pep) de m'avoir aidé à améliorer ce programme, à détecter les erreurs, à proposer des solutions et à proposer des améliorations. ", "Tria Sistema Operatiu 1.2 - 21 juin 2020", MessageBoxButtons.OK)
+        End If
+    End Sub
+
+    Private Sub ChB_OnlyFREE_OS_CheckedChanged(sender As Object, e As EventArgs) Handles ChB_OnlyFREE_OS.CheckedChanged
+        If ChB_OnlyFREE_OS.Checked = True Then
+            Lbl_Paquets.Visible = True
+            ChLB_Linux_Type.Visible = True
+            RB_Linux_DEB.Visible = True
+            RB_Linux_RPM.Visible = True
+            RB_Linux_Others.Visible = True
+        Else
+            Lbl_Paquets.Visible = False
+            ChLB_Linux_Type.Visible = False
+            RB_Linux_DEB.Visible = False
+            RB_Linux_RPM.Visible = False
+            RB_Linux_Others.Visible = False
+        End If
+    End Sub
+
+    Private Sub ChB_CPU_x64_CheckedChanged(sender As Object, e As EventArgs) Handles ChB_CPU_x64.CheckedChanged
+        ' Quan canvia estat de CPU de 64 bits si o no
+        nTemp = NumericUpDownCPU_Hz.Value
+
+        If ChB_CPU_x64.Checked = True And ChB_Mhz.Checked = True Then
+            NumericUpDownCPU_Hz.Increment = 33
+            NumericUpDownCPU_Hz.Minimum = 800
+            NumericUpDownCPU_Hz.Maximum = 999
+            NumericUpDownCPU_Hz.DecimalPlaces = 0
+            If nTemp < 800 Then
+                NumericUpDownCPU_Hz.Value = 800
+            End If
+
+        ElseIf ChB_CPU_x64.Checked = True And ChB_Mhz.Checked = False Then
+            NumericUpDownCPU_Hz.Maximum = 4
+            NumericUpDownCPU_Hz.Minimum = 1
+            NumericUpDownCPU_Hz.DecimalPlaces = 2
+            NumericUpDownCPU_Hz.Increment = 0.25
+
+        ElseIf ChB_CPU_x64.Checked = False And nTemp > 65 Then
+            NumericUpDownCPU_Hz.Maximum = 999
+            NumericUpDownCPU_Hz.Minimum = 66
+            NumericUpDownCPU_Hz.Increment = 33
+            NumericUpDownCPU_Hz.DecimalPlaces = 0
+
+        ElseIf ChB_CPU_x64.Checked = False Then
+            NumericUpDownCPU_Hz.Maximum = 4
+            NumericUpDownCPU_Hz.Minimum = 1
+            NumericUpDownCPU_Hz.DecimalPlaces = 2
+            NumericUpDownCPU_Hz.Increment = 0.25
+        End If
+    End Sub
+
+    Private Sub ChB_CPU_Multi_Core_CheckedChanged(sender As Object, e As EventArgs) Handles ChB_CPU_Multi_Core.CheckedChanged
+        ' Quan canviem selecció de CPU Multi-nucli si/no
+        nTemp = NumericUpDownCPU_Hz.Value
+        If ChB_CPU_Multi_Core.Checked = True Then
+            Label7.Text = "GigaHertzs"
+            NumericUpDownCPU_Hz.Minimum = 1
+            NumericUpDownCPU_Hz.DecimalPlaces = 2
+            NumericUpDownCPU_Hz.Increment = 0.25
+            If nTemp > 1 And nTemp < 5 Then
+                NumericUpDownCPU_Hz.Value = nTemp
+            Else
+                NumericUpDownCPU_Hz.Value = 1
+            End If
+            NumericUpDownCPU_Hz.Maximum = 4
+            ChB_Mhz.Checked = False
+            ChB_Mhz.Enabled = False
+        Else
+            ChB_Mhz.Enabled = True
+        End If
+    End Sub
+
+    Private Sub ChB_Mhz_CheckedChanged(sender As Object, e As EventArgs) Handles ChB_Mhz.CheckedChanged
+        ' Que fer cada cop que indiquem Mhz o Ghz
+        If ChB_Mhz.Checked = True Then
+            ChB_CPU_Multi_Core.Checked = False
+            ChB_CPU_Multi_Core.Enabled = False
+            Label7.Text = "MegaHertzs"
+            NumericUpDownCPU_Hz.Maximum = 999
+            NumericUpDownCPU_Hz.DecimalPlaces = 0
+            If ChB_CPU_x64.Checked = True Then
+                NumericUpDownCPU_Hz.Value = 800
+                NumericUpDownCPU_Hz.Minimum = 800
+            Else
+                NumericUpDownCPU_Hz.Value = 66
+                NumericUpDownCPU_Hz.Minimum = 66
+            End If
+            NumericUpDownCPU_Hz.Increment = 33
+        Else
+            ChB_CPU_Multi_Core.Enabled = True
+            Label7.Text = "GigaHertzs"
+            NumericUpDownCPU_Hz.Maximum = 4
+            NumericUpDownCPU_Hz.Minimum = 1
+            NumericUpDownCPU_Hz.Value = 1
+            NumericUpDownCPU_Hz.DecimalPlaces = 2
+            NumericUpDownCPU_Hz.Increment = 0.25
+        End If
+    End Sub
+
+    Private Sub ChB_RAM_MB_CheckedChanged(sender As Object, e As EventArgs) Handles ChB_RAM_MB.CheckedChanged
+        ' Que fer cada cop que canvia RAM en MB o en GB
+        nTemp = NumericUpDownRAM.Value
+        If ChB_RAM_MB.Checked = True Then
+            Label6.Text = "MB"
+            NumericUpDownRAM.Maximum = 2048
+            NumericUpDownRAM.DecimalPlaces = 0
+            NumericUpDownRAM.Minimum = 32
+            NumericUpDownRAM.Increment = 32
+            If nTemp < 2.5 Then
+                NumericUpDownRAM.Value = nTemp * 1024
+            ElseIf nTemp > 2 And nTemp < 5 Then
+                NumericUpDownRAM.Value = 2048
+            End If
+        Else
+            Label6.Text = "GB"
+            NumericUpDownRAM.Maximum = 4
+            NumericUpDownRAM.Minimum = 1
+            NumericUpDownRAM.DecimalPlaces = 1
+            NumericUpDownRAM.Increment = 0.5
+            If nTemp > 1023 Then
+                NumericUpDownRAM.Value = nTemp / 1024
+            ElseIf nTemp > 31 And nTemp < 1025 Then
+                NumericUpDownRAM.Value = 1
+            End If
+        End If
+    End Sub
+
+    Private Sub ChB_Embeded_GPU_CheckedChanged(sender As Object, e As EventArgs) Handles ChB_Embeded_GPU.CheckedChanged
+        If ChB_Embeded_GPU.Checked = True Then
+            RB_nVidia.Enabled = False
+            RB_AMD_ATI.Enabled = False
+            RB_other_GPUs.Enabled = True
+            RB_intel.Enabled = True
+            RB_intel.Checked = True
+        Else
+            RB_intel.Checked = False
+            RB_nVidia.Enabled = True
+            If RB_AMD_ATI.Checked = False And RB_nVidia.Checked = False Then
+                RB_nVidia.Checked = True
+            End If
+            RB_AMD_ATI.Enabled = True
+            RB_other_GPUs.Enabled = False
+            RB_intel.Enabled = False
+        End If
+    End Sub
+
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+        ' Calcul de punts assignats depenent dels diferents components del PC
+
+        ' CPU
+        If ChB_Mhz.Checked = True Then
+            nCPU = NumericUpDownCPU_Hz.Value * 0.3
+        Else
+            nCPU = (NumericUpDownCPU_Hz.Value * 75)
+        End If
+        If ChB_CPU_x64.Checked = True Then
+            ' a les CPU de 64 bits li sumem 49 punts
+            nCPU = nCPU + 49
+        End If
+        If ChB_CPU_Multi_Core.Checked = True Then
+            ' a les CPU de 2 o mes nuclis li sumem 50 punts
+            nCPU = nCPU + 50
+        End If
+
+        ' RAM
+        If ChB_RAM_MB.Checked = True Then
+            nRAM = (NumericUpDownRAM.Value / 32) * 3
+        Else
+            nTemp = NumericUpDownRAM.Value * 1024
+            nRAM = (nTemp / 32) * 2
+            nRAM = nRAM + 44
+        End If
+
+        ' GPU - targeta gràfica
+        nTemp = (NumericUpDown_GPU_MB_RAM.Value / 32)
+        If ChB_Embeded_GPU.Checked = True Then
+            If RB_intel.Checked = True Then
+                nGPU = (nTemp * 1.5) + 24
+            Else
+                nGPU = (nTemp * 1.5) + 12
+            End If
+        Else
+            If RB_AMD_ATI.Checked = True Then
+                nGPU = (nTemp * 2)
+            Else
+                nGPU = (nTemp * 2.5)
+            End If
+        End If
+
+        ' Disc Dur
+        nHDD = NumericUpDownHDD_GB.Value - 10
+        ' Si es un disc SSD o M.2 se li assignen 90 punts extra
+        If ChB_SSD.Checked = True Then
+            nHDD = nHDD + 90
+        End If
+
+        nPuntuacio_Total = nCPU + nRAM + nGPU + nHDD
+
+        If ChB_NO_internet.Checked = True Then
+            If nPuntuacio_Total > 699 Then
+                nPuntuacio_Total = nPuntuacio_Total - 250
+            ElseIf nPuntuacio_Total > 499 Then
+                nPuntuacio_Total = nPuntuacio_Total - 125
+            ElseIf nPuntuacio_Total > 249 Then
+                nPuntuacio_Total = nPuntuacio_Total - 75
+            Else
+                nPuntuacio_Total = nPuntuacio_Total - 40
+            End If
+        End If
+
+        If ChB_Laptop.Checked = True Then
+            If nPuntuacio_Total < 500 Then
+                nPuntuacio_Total = nPuntuacio_Total - 10
+            Else
+                nPuntuacio_Total = nPuntuacio_Total + 5
+            End If
+
+            If ChB_Wifi.Checked = True Then
+                If nPuntuacio_Total > 499 Then
+                    nPuntuacio_Total = nPuntuacio_Total + 5
+                End If
+            End If
+        End If
+
+        ' Ordinadors del grup 1 (grup de PC's amb puntuació mes baixa)
+        If nPuntuacio_Total < 160 Then
+            c_Win = "Windows 98 Second Edition (1999) 32 bits"
+            Label10.Text = c_Win
+            If RB_Linux_DEB.Checked = True Then
+                c_Linux = "Slax Linux 9.11.0 (2019) 32 bits"
+                Label11.Text = c_Linux
+                LinkLinux.Text = "https://www.slax.org/#purchase"
+            ElseIf RB_Linux_RPM.Checked = True Then
+                c_Linux = "Alt Linux (2019) 32 bits"
+                Label11.Text = c_Linux
+                LinkLinux.Text = "https://getalt.org/en/"
+            Else
+                c_Linux = "SliTaz GNU/Linux 5.0 (2018) 32 bits"
+                Label11.Text = c_Linux
+                LinkLinux.Text = "http://www.slitaz.org/en/get/"
+            End If
+
+            LinkWindows.Text = "https://www.tuinformaticafacil.com/descargas-gratis/sistemas-operativos/windows/windows-98-second-edition"
+
+            ' Ordinadors del grup 2 (generalment ordinadors fabricats als anys 90's)
+        ElseIf nPuntuacio_Total < 250 Then
+            c_Win = "Windows 2000 Professional Edition (2000) 32 bits, Service Pack 4 (2005)"
+            Label10.Text = c_Win
+            c_Linux = "Bodhi Linux 5.1.0 (2020)"
+            Label11.Text = c_Linux
+            LinkWindows.Text = "https://www.tuinformaticafacil.com/descargas-gratis/sistemas-operativos/windows/windows-2000-professional-sp4-espanol"
+            LinkLinux.Text = "https://www.bodhilinux.com/2020/03/25/bodhi-linux-5-1-0-released/"
+
+            If ChB_CPU_x64.Checked = True Then
+                Label11.Text = c_Linux + " 64 bits, Standard Release"
+            Else
+                Label11.Text = c_Linux + " 32 bits, Legacy Release"
+            End If
+
+            ' Ordinadors del grup 3 (ordinadors antics, però bastant aprofitables)
+        ElseIf nPuntuacio_Total < 500 Then
+            c_Win = "Windows XP Professional Edition"
+            Label10.Text = c_Win
+            If ChB_CPU_x64.Checked = True And ChB_RAM_MB.Checked = False And NumericUpDownRAM.Value > 3 Then
+                Label10.Text = c_Win + " 64 bits (2003) Service Pack 2 (2004)"
+                If RB_Linux_DEB.Checked = True Then
+                    c_Linux = "LXLE 18.04.3 LTS (LXDE 2019 Edition)"
+                    Label11.Text = c_Linux
+                    LinkLinux.Text = "https://www.lxle.net/download/"
+                ElseIf RB_Linux_RPM.Checked = True Then
+                    c_Linux = "Mageia 7.1 (2019)"
+                    Label11.Text = c_Linux
+                    LinkLinux.Text = "https://www.mageia.org/ca/downloads/get/?q=Mageia-7.1-i586.iso"
+                Else
+                    c_Linux = "Cucumber Linux 1.1 FULL (2018)"
+                    Label11.Text = c_Linux
+                    LinkLinux.Text = "https://sourceforge.net/projects/cucumber-linux/files/ISOs/1.1/"
+                End If
+                Label11.Text = c_Linux + " 64 bits (x86_64)"
+            Else
+                Label10.Text = c_Win + " 32 bits (2001) Service Pack 3 (2008)"
+                Label11.Text = c_Linux + " 32 bits (x86 / i586 / i686)"
+            End If
+
+            LinkWindows.Text = "https://www.descargarprogramasfullapk.xyz/2019/08/descargar-windows-xp-professional-sp3.html"
+
+            ' Ordinadors del grup 4 (ordinadors massa poc potents per Windows 10, però clarament aprofitables)
+        ElseIf nPuntuacio_Total < 700 Then
+            c_Win = "Windows 7 Professional Edition (2009) Service Pack 1 (2011)"
+            Label10.Text = c_Win
+            LinkWindows.Text = "https://softdescargas.com/windows-7-profesional-sp1-32bits-y-64bits/"
+            If RB_Linux_DEB.Checked = True Then
+                c_Linux = "MX Linux 19.2 (Xfce 2020 Edition)"
+                Label11.Text = c_Linux
+                LinkLinux.Text = "https://mxlinux.org/download-links/"
+            ElseIf RB_Linux_RPM.Checked = True Then
+                c_Linux = "OpenSUSE Tumbleweed (2020)"
+                Label11.Text = c_Linux
+                LinkLinux.Text = "https://software.opensuse.org/distributions/tumbleweed"
+            Else
+                c_Linux = "Slackel 7.2 (2019)"
+                Label11.Text = c_Linux
+                LinkLinux.Text = "https://sourceforge.net/projects/slackel/files/"
+            End If
+
+            If ChB_CPU_x64.Checked = True And ChB_RAM_MB.Checked = False And NumericUpDownRAM.Value > 3 Then
+                Label10.Text = c_Win + " 64 bits"
+                Label11.Text = c_Linux + " 64 bits"
+            Else
+                Label10.Text = c_Win + " 32 bits"
+                Label11.Text = c_Linux + " 32 bits"
+            End If
+
+            ' Ordinadors del grup 5 (els millors ordinadors)
+        Else
+            c_Win = "Windows 10 Professional Edition (2015) - Release 2004 (2020)"
+            Label10.Text = c_Win
+            LinkWindows.Text = "https://www.microsoft.com/es-es/software-download/windows10"
+            If ChB_CPU_x64.Checked = True And ChB_RAM_MB.Checked = False And NumericUpDownRAM.Value > 3 Then
+                Label10.Text = c_Win + " 64 bits"
+                If RB_Linux_DEB.Checked = True Then
+                    c_Linux = "Ubuntu 20.04 LTS (2020 Desktop Edition) Focal Fossa - 64 bits"
+                    Label11.Text = c_Linux
+                    LinkLinux.Text = "https://ubuntu.com/download/desktop/thank-you?version=20.04&architecture=amd64"
+                ElseIf RB_Linux_RPM.Checked = True Then
+                    c_Linux = "Fedora Workstation 32 x86_64 (2020, 64 bits)"
+                    Label11.Text = c_Linux
+                    LinkLinux.Text = "https://getfedora.org/ca/workstation/download/"
+                Else
+                    c_Linux = "Arch Linux 2020.06.01 (2020, 64 bits)"
+                    Label11.Text = c_Linux
+                    LinkLinux.Text = "http://archlinux.de-labrusse.fr/iso/2020.06.01/"
+                End If
+            Else
+                Label10.Text = c_Win + " 32 bits"
+                If RB_Linux_DEB.Checked = True Then
+                    Label11.Text = "Lubuntu 18.04.4 LTS (2020 Desktop i386 Edition) Bionic Beaver - 32 bits"
+                    LinkLinux.Text = "http://cdimage.ubuntu.com/lubuntu/releases/18.04.4/release/?C=S;O=A"
+                ElseIf RB_Linux_RPM.Checked = True Then
+                    Label11.Text = "Mageia 7.1 i586 (2019, 32 bits)"
+                    LinkLinux.Text = "https://www.mageia.org/ca/downloads/get/?q=Mageia-7.1-i586.iso"
+                Else
+                    Label11.Text = "Cucumber Linux 1.1 FULL i686 (2018, 32 bits)"
+                    LinkLinux.Text = "https://sourceforge.net/projects/cucumber-linux/files/ISOs/1.1/"
+                End If
+            End If
+        End If
+
+        If ChB_OnlyWin.Checked = True Then
+            Label10.Visible = True
+            LinkWindows.Visible = True
+        End If
+        If ChB_OnlyFREE_OS.Checked = True Then
+            Label11.Visible = True
+            LinkLinux.Visible = True
+        End If
+
+        Label12.Visible = True
+    End Sub
+
+    Private Sub Bt_PC_Click(sender As Object, e As EventArgs) Handles Bt_PC.Click
+        ' Carregar les característiques del PC on executem el programa
+
+        c_String = InStr(1, UCase(TB_CPU_Name.Text), "CORE", CompareMethod.Text)
+
+        If Val(c_String) > 0 Then
+            ChB_CPU_x64.Checked = True
+            ChB_CPU_Multi_Core.Checked = True
+        End If
+
+        If nPC_CPU > 999 Then
+            ChB_RAM_MB.Checked = False
+            NumericUpDownRAM.Maximum = 4
+            NumericUpDownRAM.Minimum = 1
+            NumericUpDownRAM.Increment = 0.25
+            NumericUpDownRAM.DecimalPlaces = 2
+            NumericUpDownCPU_Hz.Value = nPC_CPU / 1000
+        End If
+
+        If nPC_RAM > 1023 Then
+            ChB_RAM_MB.Checked = False
+            NumericUpDownRAM.Maximum = 4
+            NumericUpDownRAM.Minimum = 1
+            NumericUpDownRAM.Increment = 0.5
+            NumericUpDownRAM.DecimalPlaces = 1
+            If nPC_RAM > 4095 Then
+                nPC_RAM = 4096
+            End If
+            NumericUpDownRAM.Value = nPC_RAM / 1024
+        End If
+
+        If Val(TB_PC_GPU.Text) > 2048 Then
+            NumericUpDown_GPU_MB_RAM.Value = 2048
+        Else
+            NumericUpDown_GPU_MB_RAM.Value = Val(TB_PC_GPU.Text)
+        End If
+
+        ' Marca GPU segons c_GPU
+        Select Case c_GPU
+            Case "NVIDIA"
+                ChB_Embeded_GPU.Checked = False
+                RB_intel.Checked = False
+                RB_other_GPUs.Checked = False
+                RB_nVidia.Enabled = True
+                RB_nVidia.Checked = True
+                RB_AMD_ATI.Enabled = True
+                RB_AMD_ATI.Checked = False
+                RB_other_GPUs.Enabled = False
+                RB_intel.Enabled = False
+            Case "AMD"
+                ChB_Embeded_GPU.Checked = False
+                RB_intel.Checked = False
+                RB_other_GPUs.Checked = False
+                RB_nVidia.Enabled = True
+                RB_nVidia.Checked = False
+                RB_AMD_ATI.Enabled = True
+                RB_AMD_ATI.Checked = True
+                RB_other_GPUs.Enabled = False
+                RB_intel.Enabled = False
+            Case "INTEL"
+                ChB_Embeded_GPU.Checked = True
+                RB_intel.Checked = True
+                RB_other_GPUs.Checked = False
+                RB_nVidia.Enabled = False
+                RB_nVidia.Checked = False
+                RB_AMD_ATI.Enabled = False
+                RB_AMD_ATI.Checked = False
+                RB_other_GPUs.Enabled = True
+                RB_intel.Enabled = True
+            Case "OTHERS"
+                ChB_Embeded_GPU.Checked = True
+                RB_intel.Checked = False
+                RB_other_GPUs.Checked = True
+                RB_nVidia.Enabled = False
+                RB_nVidia.Checked = False
+                RB_AMD_ATI.Enabled = False
+                RB_AMD_ATI.Checked = False
+                RB_other_GPUs.Enabled = True
+                RB_intel.Enabled = True
+        End Select
+
+        If nPC_HDD > 60 Then
+            NumericUpDownHDD_GB.Value = 60
+        ElseIf nPC_HDD > 9 Then
+            NumericUpDownHDD_GB.Value = nPC_HDD
+        End If
+        If bSSD = True Then
+            ChB_SSD.Checked = True
+        Else
+            ChB_SSD.Checked = False
+        End If
+    End Sub
+
+    Private Sub LinkWindows_LinkClicked(sender As Object, e As LinkLabelLinkClickedEventArgs) Handles LinkWindows.LinkClicked
+        ' Obrir link (enllaç URL) de recomanació Microsoft Windows
+        Process.Start(LinkWindows.Text)
+    End Sub
+
+    Private Sub LinkLinux_LinkClicked(sender As Object, e As LinkLabelLinkClickedEventArgs) Handles LinkLinux.LinkClicked
+        ' Obrir link (enllaç URL) de recomanació GNU/Linux
+        Process.Start(LinkLinux.Text)
+    End Sub
+
+    Private Sub Bt_reset_Click(sender As Object, e As EventArgs) Handles Bt_reset.Click
+        ' Tornar a posar tot als valors inicials
+
+        nPuntuacio_Total = 0
+        nCPU = 0
+        nRAM = 0
+        nGPU = 0
+        nHDD = 0
+        nTemp = 0
+
+        Label10.Visible = False
+        Label11.Visible = False
+        Label12.Visible = False
+        LinkWindows.Visible = False
+        LinkLinux.Visible = False
+
+        ChB_Laptop.Checked = False
+        ChB_NO_internet.Checked = False
+        ChB_Wifi.Checked = False
+        ChB_OnlyWin.Checked = False
+        ChB_OnlyFREE_OS.Checked = True
+
+        ChB_CPU_x64.Checked = False
+        ChB_CPU_Multi_Core.Checked = False
+        ChB_Mhz.Checked = False
+        NumericUpDownCPU_Hz.Minimum = 1
+        NumericUpDownCPU_Hz.Maximum = 4
+        NumericUpDownCPU_Hz.DecimalPlaces = 2
+        NumericUpDownCPU_Hz.Increment = 0.25
+        NumericUpDownCPU_Hz.Value = 1
+
+        ChB_RAM_MB.Checked = False
+        NumericUpDownRAM.Value = 1
+
+        ChB_Embeded_GPU.Checked = False
+        NumericUpDown_GPU_MB_RAM.Value = 32
+        RB_intel.Checked = False
+        RB_nVidia.Enabled = True
+        If RB_AMD_ATI.Checked = False And RB_nVidia.Checked = False Then
+            RB_nVidia.Checked = True
+        End If
+        RB_AMD_ATI.Enabled = True
+        RB_other_GPUs.Enabled = False
+        RB_intel.Enabled = False
+
+        ChB_SSD.Checked = False
+        NumericUpDownHDD_GB.Value = 10
+    End Sub
+
+    Private Sub Label1_Click(sender As Object, e As EventArgs) Handles Label1.Click
+        If nPuntuacio_Total > 0 And Lbl_hack.Visible = False Then
+            Label3.Visible = True
+            Lbl_hack.Text = Str(nPuntuacio_Total)
+            Lbl_hack.Visible = True
+        Else
+            Label3.Visible = False
+            Lbl_hack.Visible = False
+        End If
+    End Sub
+End Class

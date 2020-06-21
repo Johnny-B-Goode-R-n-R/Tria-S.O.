@@ -1,0 +1,47 @@
+Tria S.O. versió 1.0 - Estiu 2020
+=======================================================
+
+CPU (processador) = Un màxim de 399 punts sobre 999
+
+-------------------------------------------------------
+
+RAM (memòria S.O.)= Un màxim de 300 punts sobre 999
+
+-------------------------------------------------------
+
+GPU (targeta gràfica)	= Fins a 160 punts sobre 999
+
+-------------------------------------------------------
+
+HDD (Disc dur principal)= Fins a 140 punts sobre 999
+
+=======================================================
+
+CPU de 2 o mes nuclis  = bonus 50 punts
+	CPU de 64 bits = bonus 49 punts
+Processador de entre 66 i 999 Mhz= 0,3 punts per Mhz
+Processador de entre 1 i 4 Ghz   = 75 punts per Ghz
+
+-------------------------------------------------------
+
+Memoria RAM per al sistema operatiu:
+
+De 32 MB a 1024 MB =>	3 punts per cada 32 MB
+De 1 GB a 4 GB	=>	2 punts per cada 32 MB	
+			+ bonus de 44 punts
+
+--------------------------------------------------------
+
+GPU - Memoria RAM targeta gràfica : 
+
+Integrada NO intel = 12 punts + 1,5 punts per cada 32 MB
+Integrada intel	   = 24 punts + 1,5 punts per cada 32 MB
+ATI - AMD	   = 2 punts per cada 32 MB de RAM
+nVidia		   = 2,5 punts per cada 32 MB de RAM
+
+--------------------------------------------------------
+
+HDD = Bonus de 90 punts si es SSD o M.2
+10 punts per cada 10 GB, de 20 GB fins a 60 GB
+
+========================================================
